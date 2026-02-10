@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <PackageId>StateleSSE.AspNetCore</PackageId>
+    <Version>3.1.0</Version>
+    <Authors>Alex Uldahl Pedersen</Authors>
+    <Description>Standardized client/group management for server sent events with horizontal scaling+more. Install StateleSSE.CodeGen for TypeScript or C# client code generation.</Description>
+    <PackageTags>sse;server-sent-events;aspnetcore;extensions;stateless;real-time;redis;backplane;horizontal-scaling</PackageTags>
+    <RepositoryUrl>https://github.com/StateleSSE/StateleSSE.AspNetCore</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>StateleSSE.AspNetCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" Version="[2.6.0, 3.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="PolySharp" Version="1.14.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
