@@ -1,3 +1,4 @@
+using api.Service;
 using ExampleApp.Quickstart;
 using StackExchange.Redis;
 using StateleSSE.AspNetCore;
@@ -25,13 +26,15 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     return ConnectionMultiplexer.Connect(config);
 });
 
+builder.Services.AddSingleton<SseService>();
+
 builder.Services.AddRedisSseBackplane();
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5174") // The URL of your React app
+        policy.WithOrigins("http://localhost:5173") // The URL of your React app
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); // Important for SSE/Cookies
@@ -42,7 +45,11 @@ var app = builder.Build();
 
 app.UseCors();
 
-app.GenerateApiClientsFromOpenApi("client/src/generated-ts-client.ts", "./openapi.json").GetAwaiter().GetResult();
+//Generate Api client 
+var root = Directory.GetParent(app.Environment.ContentRootPath)!.FullName;
+var clientPath = Path.Combine(root, "..", "client", "src", "generated.ts.client.ts");
+var openApiPath = Path.Combine(app.Environment.ContentRootPath, "openapi.json");
+app.GenerateApiClientsFromOpenApi(clientPath, openApiPath).GetAwaiter().GetResult();
 
 var backplane = app.Services.GetRequiredService<ISseBackplane>();                                                                                                                         
 backplane.OnClientDisconnected += async (_, e) =>                                                                                                                                         
@@ -62,8 +69,7 @@ app.UseSwaggerUi();
 app.UseAuthorization();
 app.UseAuthentication();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+
 app.MapControllers();
 
 app.Run();

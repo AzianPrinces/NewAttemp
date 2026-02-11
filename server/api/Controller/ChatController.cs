@@ -1,4 +1,7 @@
 ﻿using System.Text;
+using System.Text.Json;
+using api.DTOs;
+using api.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api;
@@ -9,6 +12,7 @@ public class ChatController : ControllerBase
 {
     private static readonly List<Stream> _clients = new List<Stream>();
     private static readonly object _lock = new object();
+    
 
     [HttpGet(nameof(Connect))]
     public async Task Connect()
@@ -57,8 +61,27 @@ public class ChatController : ControllerBase
         
         //convert string to bytes
         byte[] buffer = Encoding.UTF8.GetBytes($"data: {request.Content}\n\n");
+
+        await BroadcastToClients(buffer);
         
-        //Copy the list to avoid errors while sending if someone is disconnected
+        return Ok($"Sent message. ");
+    }
+
+    [HttpPost(nameof(UserTyping))]
+    public async Task<IActionResult> UserTyping([FromBody] TypingRequest request)
+    {
+        var data = JsonSerializer.Serialize(new { username = request.Username });
+        var sseMessage = $"event: typing\ndata: {data}\n\n";
+        byte[] buffer = Encoding.UTF8.GetBytes(sseMessage);
+
+        // 2. Reuse the same list of clients you use for SendMessage
+        await BroadcastToClients(buffer);
+        return Ok();
+    }
+
+
+    private async Task BroadcastToClients(byte[] buffer)
+    {
         List<Stream> currentClients;
         lock (_lock)
         {
@@ -69,21 +92,18 @@ public class ChatController : ControllerBase
         {
             try
             {
-                //Write bytes to specific clients stream
                 await clientStream.WriteAsync(buffer);
                 await clientStream.FlushAsync();
             }
             catch
             {
-                
+                // Ideally remove broken clients here, but ignoring is fine for now
             }
         }
-        return Ok($"Sent to {currentClients.Count} clients. ");
     }
-    
-    
-        
-    }
+
+
+}
 
 
     

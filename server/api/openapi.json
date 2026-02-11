@@ -51,6 +51,39 @@
           }
         }
       }
+    },
+    "/Chat/UserTyping": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "operationId": "Chat_UserTyping",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TypingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -60,6 +93,15 @@
         "additionalProperties": false,
         "properties": {
           "content": {
+            "type": "string"
+          }
+        }
+      },
+      "TypingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "username": {
             "type": "string"
           }
         }
