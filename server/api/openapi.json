@@ -94,6 +94,9 @@
         "properties": {
           "content": {
             "type": "string"
+          },
+          "username": {
+            "type": "string"
           }
         }
       },

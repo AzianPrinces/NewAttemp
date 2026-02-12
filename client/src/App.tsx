@@ -4,14 +4,19 @@ import {useEffect, useRef, useState} from "react";
 
 export default function App() {
 
+    //username state
+    const [username, setUsername] = useState("");
+    const [isUsernmeSet, setIsUsernameSet] = useState(false);
+
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState("");
 
     const [typingMessage, setTypingMessage] = useState("");
-
     const lastTypingTime = useRef(0);
 
     useEffect(() => {
+
+        if (!isUsernmeSet) return;
 
         const es = new EventSource("http://localhost:5159/Chat/Connect");
 
@@ -32,7 +37,7 @@ export default function App() {
 
         return () => es.close();
 
-    }, [])
+    }, [isUsernmeSet])
 
     const handleTyping = () => {
         const now = Date.now();
@@ -44,11 +49,12 @@ export default function App() {
             //Fire and forget
             fetch("http://localhost:5159/Chat/UserTyping", {
                 method: "POST",
-                body: JSON.stringify({username: "Someone" }), //It is hardcode
+                body: JSON.stringify({username: username }),
                 headers: { "Content-Type": "application/json" }
             });
         }
     }
+
     const handleSend = async () => {
         if (!inputText) return;
 
@@ -57,12 +63,38 @@ export default function App() {
 
         await fetch("http://localhost:5159/Chat/SendMessage", {
             method: "POST",
-            body: JSON.stringify({content: textToSend}),
+            body: JSON.stringify({
+                content: textToSend,
+                username: username}),
             headers: {
                 "Content-Type": "application/json"
             }
         })
     }
+
+    //submit username
+    const handleUsernameSubmit = () => {
+        if (username.trim()){
+            setIsUsernameSet(true);
+        }
+    }
+
+    if(!isUsernmeSet) {
+        return (
+            <div style={{padding: "20px"}}>
+                <h2>Enter your name</h2>
+                <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Your name..."
+                style={{margin: "10px", padding: "5px"}}
+                />
+                <button onClick={handleUsernameSubmit}>Join Chat</button>
+                </div>
+        );
+    }
+
 
 
 

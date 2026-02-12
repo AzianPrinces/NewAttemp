@@ -57,10 +57,13 @@ public class ChatController : ControllerBase
     [HttpPost(nameof(SendMessage))]
     public async Task<IActionResult> SendMessage([FromBody] MessageRequest request)
     {
+        if (string.IsNullOrEmpty(request.Username)) return BadRequest("Username reqired");
         if (string.IsNullOrEmpty(request.Content)) return BadRequest("Cannot be empty");
+
+        var formattedMessage = $"{request.Username}: {request.Content}";
         
         //convert string to bytes
-        byte[] buffer = Encoding.UTF8.GetBytes($"data: {request.Content}\n\n");
+        byte[] buffer = Encoding.UTF8.GetBytes($"data: {formattedMessage}\n\n");
 
         await BroadcastToClients(buffer);
         
