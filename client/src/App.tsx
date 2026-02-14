@@ -4,9 +4,11 @@ import {useEffect, useRef, useState} from "react";
 
 export default function App() {
 
-    //username state
+    //username state and room
     const [username, setUsername] = useState("");
-    const [isUsernmeSet, setIsUsernameSet] = useState(false);
+    const [isJoined, setIsJoined] = useState(false);
+    const [room, setRoom] = useState("");
+
 
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState("");
@@ -16,9 +18,9 @@ export default function App() {
 
     useEffect(() => {
 
-        if (!isUsernmeSet) return;
+        if (!isJoined) return;
 
-        const es = new EventSource("http://localhost:5159/Chat/Connect");
+        const es = new EventSource(`http://localhost:5159/Chat/Connect?room=${encodeURIComponent(room)}`);
 
         es.onmessage = (event) => {
             setMessages((prev) => [...prev, event.data])
@@ -37,7 +39,7 @@ export default function App() {
 
         return () => es.close();
 
-    }, [isUsernmeSet])
+    }, [isJoined, room])
 
     const handleTyping = () => {
         const now = Date.now();
@@ -46,10 +48,13 @@ export default function App() {
         if (now - lastTypingTime.current > 2000) {
             lastTypingTime.current = now;
 
-            //Fire and forget
             fetch("http://localhost:5159/Chat/UserTyping", {
                 method: "POST",
-                body: JSON.stringify({username: username }),
+                body: JSON.stringify({
+
+                    username: username,
+                    room: room
+                }),
                 headers: { "Content-Type": "application/json" }
             });
         }
@@ -65,7 +70,9 @@ export default function App() {
             method: "POST",
             body: JSON.stringify({
                 content: textToSend,
-                username: username}),
+                username: username,
+                room: room
+            }),
             headers: {
                 "Content-Type": "application/json"
             }
@@ -73,16 +80,16 @@ export default function App() {
     }
 
     //submit username
-    const handleUsernameSubmit = () => {
-        if (username.trim()){
-            setIsUsernameSet(true);
+    const handleJoinChat = () => {
+        if (username.trim() && room.trim()){
+            setIsJoined(true);
         }
     }
 
-    if(!isUsernmeSet) {
+    if(!isJoined) {
         return (
             <div style={{padding: "20px"}}>
-                <h2>Enter your name</h2>
+                <h2>Join chat</h2>
                 <input
                 type="text"
                 value={username}
@@ -90,7 +97,17 @@ export default function App() {
                 placeholder="Your name..."
                 style={{margin: "10px", padding: "5px"}}
                 />
-                <button onClick={handleUsernameSubmit}>Join Chat</button>
+
+                <input
+                type="text"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleJoinChat()}
+                placeholder="Room name..."
+                style={{margin: "10px", padding: "5px", display: "block"}}
+                />
+
+                <button onClick={handleJoinChat}>Join Chat</button>
                 </div>
         );
     }
@@ -99,12 +116,16 @@ export default function App() {
 
 
     return (
-        <div>
-            <>
+        <div style={{padding: "20px"}}>
+
+            <h3>Room: {room} | User: {username}</h3>
+
+            <div style={{ border: "1px solid #ccc", padding: "10px", minHeight: "300px", marginBottom: "10px"}}>
+
                 {messages.map((message, index) => (
                     <div key={index}>{message}</div>
                     ))}
-            </>
+            </div>
 
             {typingMessage && (<div style={{ color: "gray", fontStyle: "italic", margin: "10px"}}>
                 {typingMessage}
@@ -119,7 +140,7 @@ export default function App() {
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Enter Message..."
-                style={{margin: "10px", padding: "5px"}}
+                style={{margin: "10px", padding: "5px", width: "80%"}}
             />
         </div>
     )

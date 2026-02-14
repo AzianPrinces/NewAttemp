@@ -17,8 +17,12 @@ export class ChatClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    connect(): Promise<void> {
-        let url_ = this.baseUrl + "/Chat/Connect";
+    connect(room: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/Chat/Connect?";
+        if (room === null)
+            throw new globalThis.Error("The parameter 'room' cannot be null.");
+        else if (room !== undefined)
+            url_ += "room=" + encodeURIComponent("" + room) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -135,10 +139,12 @@ export class ChatClient {
 export interface MessageRequest {
     content?: string;
     username?: string;
+    room?: string;
 }
 
 export interface TypingRequest {
     username?: string;
+    room?: string;
 }
 
 export enum StringConstants {
